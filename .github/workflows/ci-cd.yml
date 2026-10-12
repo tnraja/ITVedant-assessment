@@ -1,0 +1,50 @@
+name: ci-cd
+on:
+  push:
+    branches: [main]
+permissions:
+  id-token: write
+  contents: read
+env:
+  AWS_REGION: ap-south-1
+  ECR_REPO: flask-demo
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install -r app/requirements.txt pytest
+      - run: cd app && pytest
+
+  build-push-deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::<ACCOUNT>:role/gh-actions-role
+          aws-region: ${{ env.AWS_REGION }}
+      - id: ecr
+        uses: aws-actions/amazon-ecr-login@v2
+      - name: Build and push
+        run: |
+          IMAGE=${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPO }}:${{ github.sha }}
+          docker build -t $IMAGE .
+          docker push $IMAGE
+          echo "IMAGE=$IMAGE" >> $GITHUB_ENV
+      - uses: helm/kind-action@v1
+        with: { cluster_name: demo }
+      - name: Deploy to Kubernetes
+        run: |
+          kind load docker-image $IMAGE --name demo
+          sed -i "s|IMAGE_PLACEHOLDER|$IMAGE|" k8s/app.yaml
+          kubectl apply -f k8s/app.yaml
+          kubectl rollout status deployment/flask-demo --timeout=120s
+      - name: Smoke test
+        run: |
+          kubectl port-forward svc/flask-demo 8080:80 &
+          sleep 5
+          curl -f http://localhost:8080/health

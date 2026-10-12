@@ -1,0 +1,9 @@
+cat > .gitignore <<'EOF'
+.aws/
+.ssh/
+.cache/
+.venv/
+__pycache__/
+*.py[cod]
+.env
+EOF
