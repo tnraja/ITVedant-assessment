@@ -1,6 +1,6 @@
 # cicd-assessment
 
-# TASK
+# Goal
 
 ************
 
