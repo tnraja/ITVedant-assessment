@@ -11,9 +11,11 @@
 
 ************
 
-# Screenshot - CICD Directory Structure 
+# Screenshot - CICD Directory Structure  and EC2 Creation
 
 <img width="855" height="277" alt="image" src="https://github.com/user-attachments/assets/a3f4559e-f651-4495-ba9f-782c9fb4c2fc" />
+
+<img width="1877" height="805" alt="image" src="https://github.com/user-attachments/assets/08aec03c-87c6-4dc1-bb18-567f3b5a6a2a" />
 
 # Step 1
 
